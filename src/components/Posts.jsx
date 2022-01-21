@@ -1,27 +1,17 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { useEffect, useState } from "react";
-import { getPosts } from "../api/posts";
+import { useQueryClient } from "react-query";
+import { usePosts } from "../hooks/posts";
 
 export default function Posts({ setPostId }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [posts, setPosts] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getPosts();
-        setPosts(data);
-        setError(null);
-      } catch (error) {
-        setError(error);
-        setPosts(null);
-      }
-      setIsLoading(false);
-    };
-    fetchData();
-  }, []);
+  const queryClient = useQueryClient();
+  const {
+    data: posts,
+    error,
+    isLoading,
+    isFetching,
+    // isIdle,
+    // refetch,
+  } = usePosts();
 
   if (isLoading) {
     return (
@@ -39,13 +29,23 @@ export default function Posts({ setPostId }) {
     );
   }
 
+  // if (isIdle) {
+  //   return <button onClick={refetch}>Load Posts</button>;
+  // }
+
   return (
     <section>
-      <h2>Posts:</h2>
+      <h2>Posts: {isFetching && <span className="spinner-border"></span>}</h2>
       <ul>
         {posts.map((post) => (
           <li key={post.id}>
-            <a onClick={() => setPostId(post.id)} href="#">
+            <a
+              className={
+                queryClient.getQueryData(["posts", post.id]) && "link-success"
+              }
+              onClick={() => setPostId(post.id)}
+              href="#"
+            >
               {post.title}
             </a>
           </li>
